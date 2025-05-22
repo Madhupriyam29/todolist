@@ -1,6 +1,9 @@
+"use client"
+
 import React, { useState } from 'react';
-import { CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Button } from "@/components/ui/button";
+import { DatePickerWithPresets } from "@/components/DatePickerWithPresets";
+import { cn } from "@/lib/utils";
 
 interface TaskDialogProps {
   isOpen: boolean;
@@ -11,7 +14,7 @@ interface TaskDialogProps {
 export function TaskDialog({ isOpen, onClose, onSave }: TaskDialogProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedDate, setSelectedDate] = useState('Today');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   if (!isOpen) return null;
 
@@ -20,11 +23,14 @@ export function TaskDialog({ isOpen, onClose, onSave }: TaskDialogProps) {
     onSave({
       title,
       description,
-      date: selectedDate,
+      date: selectedDate ? new Intl.DateTimeFormat('en-US', { 
+        month: 'long', 
+        day: 'numeric' 
+      }).format(selectedDate) : 'No Date',
     });
     setTitle('');
     setDescription('');
-    setSelectedDate('Today');
+    setSelectedDate(new Date());
     onClose();
   };
 
@@ -51,65 +57,74 @@ export function TaskDialog({ isOpen, onClose, onSave }: TaskDialogProps) {
           </div>
           
           <div className="border-t border-gray-200 dark:border-gray-700 p-3 flex flex-wrap gap-2">
-            <button 
-              type="button"
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-            >
-              <CalendarIcon className="h-3 w-3" />
-              <span>{selectedDate}</span>
-            </button>
+            <DatePickerWithPresets 
+              date={selectedDate} 
+              setDate={setSelectedDate} 
+            />
             
-            <button 
+            <Button 
               type="button"
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+              variant="outline"
+              size="sm"
+              className="h-7 px-2 text-xs rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-0"
             >
               <span>Priority</span>
-            </button>
+            </Button>
             
-            <button 
+            <Button 
               type="button"
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+              variant="outline"
+              size="sm"
+              className="h-7 px-2 text-xs rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-0"
             >
               <span>Reminders</span>
-            </button>
+            </Button>
             
-            <button 
+            <Button 
               type="button"
-              className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+              variant="outline"
+              size="sm"
+              className="h-7 w-7 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-0 p-0"
             >
               <span>...</span>
-            </button>
+            </Button>
           </div>
           
           <div className="border-t border-gray-200 dark:border-gray-700 p-3 flex items-center justify-between">
             <div className="relative">
-              <button 
+              <Button 
                 type="button"
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs rounded-md text-gray-700 dark:text-gray-300 flex items-center gap-1"
               >
                 <span>Inbox</span>
                 <span className="text-xs">▼</span>
-              </button>
+              </Button>
             </div>
             
             <div className="flex items-center gap-2">
-              <button 
+              <Button 
                 type="button" 
                 onClick={onClose}
-                className="px-3 py-1 text-sm rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                variant="ghost"
+                size="sm"
+                className="h-8 px-3 text-sm rounded-md text-gray-700 dark:text-gray-300"
               >
                 Cancel
-              </button>
-              <button 
+              </Button>
+              <Button 
                 type="submit"
+                variant="default"
+                size="sm"
                 className={cn(
-                  "px-3 py-1 text-sm rounded-md bg-blue-600 text-white",
+                  "h-8 px-3 text-sm rounded-md bg-blue-600 text-white",
                   !title.trim() ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-700"
                 )}
                 disabled={!title.trim()}
               >
                 Add task
-              </button>
+              </Button>
             </div>
           </div>
         </form>
