@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 interface TaskDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (task: { title: string; description: string; date: string; priority: Priority }) => void;
+  onSave: (task: { title: string; description: string; date: string; priority: Priority; completed: boolean }) => void;
 }
 
 export function TaskDialog({ isOpen, onClose, onSave }: TaskDialogProps) {
@@ -17,6 +17,7 @@ export function TaskDialog({ isOpen, onClose, onSave }: TaskDialogProps) {
   const [description, setDescription] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [priority, setPriority] = useState<Priority>(null);
+  const [completed, setCompleted] = useState(false);
 
   if (!isOpen) return null;
 
@@ -29,12 +30,14 @@ export function TaskDialog({ isOpen, onClose, onSave }: TaskDialogProps) {
         month: 'long', 
         day: 'numeric' 
       }).format(selectedDate) : 'No Date',
-      priority
+      priority,
+      completed
     });
     setTitle('');
     setDescription('');
     setSelectedDate(new Date());
     setPriority(null);
+    setCompleted(false);
     onClose();
   };
 
@@ -43,14 +46,22 @@ export function TaskDialog({ isOpen, onClose, onSave }: TaskDialogProps) {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md overflow-hidden">
         <form onSubmit={handleSubmit}>
           <div className="p-4">
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Task name"
-              className="w-full text-lg font-medium bg-transparent border-none outline-none placeholder-gray-400 dark:placeholder-gray-500"
-              autoFocus
-            />
+            <div className="flex items-center gap-3 mb-2">
+              <input
+                type="checkbox"
+                checked={completed}
+                onChange={(e) => setCompleted(e.target.checked)}
+                className="h-5 w-5 rounded-full border-2 border-gray-400 dark:border-gray-500"
+              />
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Task name"
+                className="w-full text-lg font-medium bg-transparent border-none outline-none placeholder-gray-400 dark:placeholder-gray-500"
+                autoFocus
+              />
+            </div>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}

@@ -1,33 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@stackframe/stack";
 import Link from "next/link";
 import { CalendarIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { TaskDialog } from "@/components/TaskDialog";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 export default function Dashboard() {
   const user = useUser({ or: "redirect" });
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
-  const [tasks, setTasks] = useState([
-    { id: 1, title: "Task 1", completed: false, overdue: true },
-    { id: 2, title: "Task 2", completed: false, overdue: true },
-    { id: 3, title: "Task 3", completed: false, overdue: true },
-  ]);
+
+  // Fetch tasks from Convex
+  const userTasks = useQuery(api.tasks.getTasksByUser, { 
+    user_id: user?.id || "" 
+  }) || [];
+
+  // Convex mutations
+  const createTask = useMutation(api.tasks.createTask);
+  const updateTask = useMutation(api.tasks.updateTask);
 
   const today = new Date();
   const formattedDate = `${today.getDate()} ${today.toLocaleString('default', { month: 'long' })} · ${today.toLocaleString('default', { weekday: 'long' })}`;
 
-  const handleAddTask = (task: { title: string; description: string; date: string }) => {
-    setTasks([
-      ...tasks,
-      {
-        id: tasks.length + 1,
+  const handleAddTask = async (task: { title: string; description: string; date: string; priority: any; completed: boolean }) => {
+    if (!user) return;
+    
+    try {
+      await createTask({
         title: task.title,
-        completed: false,
-        overdue: false,
-      },
-    ]);
+        date: task.date,
+        priority: task.priority || undefined, // Use undefined instead of null
+        reminder: undefined, // Use undefined instead of null
+        completed: task.completed,
+        user_id: user.id,
+        username: user.displayName || 'Anonymous',
+      });
+    } catch (error) {
+      console.error('Error creating task:', error);
+    }
   };
 
   return (
@@ -136,7 +148,7 @@ export default function Dashboard() {
           </div>
           
           <div className="text-sm text-muted-foreground mb-4">
-            <span>{tasks.length} tasks</span>
+            <span>{userTasks.length} tasks</span>
           </div>
           
           <div className="mb-6">
@@ -148,10 +160,17 @@ export default function Dashboard() {
             </div>
             
             <div className="space-y-1 mt-2">
-              {tasks.map(task => (
-                <div key={task.id} className="flex items-center p-2 hover:bg-secondary rounded-md">
+              {userTasks.map(task => (
+                <div key={task._id} className="flex items-center p-2 hover:bg-secondary rounded-md">
                   <input 
-                    type="checkbox" 
+                    type="checkbox"
+                    checked={task.completed || false}
+                    onChange={() => {
+                      updateTask({
+                        id: task._id,
+                        completed: !task.completed
+                      });
+                    }}
                     className="h-4 w-4 rounded-full border-2 border-muted-foreground mr-3"
                   />
                   <span className="flex-1">{task.title}</span>
