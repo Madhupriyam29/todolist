@@ -3,18 +3,20 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { DatePickerWithPresets } from "@/components/DatePickerWithPresets";
+import { PrioritySelector, type Priority } from "./PrioritySelector";
 import { cn } from "@/lib/utils";
 
 interface TaskDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (task: { title: string; description: string; date: string }) => void;
+  onSave: (task: { title: string; description: string; date: string; priority: Priority }) => void;
 }
 
 export function TaskDialog({ isOpen, onClose, onSave }: TaskDialogProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [priority, setPriority] = useState<Priority>(null);
 
   if (!isOpen) return null;
 
@@ -27,10 +29,12 @@ export function TaskDialog({ isOpen, onClose, onSave }: TaskDialogProps) {
         month: 'long', 
         day: 'numeric' 
       }).format(selectedDate) : 'No Date',
+      priority
     });
     setTitle('');
     setDescription('');
     setSelectedDate(new Date());
+    setPriority(null);
     onClose();
   };
 
@@ -62,14 +66,10 @@ export function TaskDialog({ isOpen, onClose, onSave }: TaskDialogProps) {
               setDate={setSelectedDate} 
             />
             
-            <Button 
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-7 px-2 text-xs rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-0"
-            >
-              <span>Priority</span>
-            </Button>
+            <PrioritySelector
+              value={priority}
+              onChange={setPriority}
+            />
             
             <Button 
               type="button"
