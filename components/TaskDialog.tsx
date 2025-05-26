@@ -10,12 +10,13 @@ interface TaskDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (task: { title: string; description: string; date: string; priority: Priority; completed: boolean }) => void;
+  initialDate?: string;
 }
 
-export function TaskDialog({ isOpen, onClose, onSave }: TaskDialogProps) {
+export function TaskDialog({ isOpen, onClose, onSave, initialDate }: TaskDialogProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(initialDate ? new Date(initialDate) : new Date());
   const [priority, setPriority] = useState<Priority>(null);
   const [completed, setCompleted] = useState(false);
 

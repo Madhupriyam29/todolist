@@ -11,6 +11,7 @@ export const createTask = mutation({
     completed: v.optional(v.boolean()),
     user_id: v.string(),
     username: v.string(),
+    email: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const taskId = await ctx.db.insert("task", {
@@ -21,6 +22,7 @@ export const createTask = mutation({
       completed: args.completed ?? false, // Default to false if not provided
       user_id: args.user_id,
       username: args.username,
+      email: args.email,
     });
     return taskId;
   },

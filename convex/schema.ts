@@ -11,5 +11,6 @@ export default defineSchema({
     completed: v.optional(v.boolean()),
     user_id: v.string(),
     username: v.string(),
+    email: v.optional(v.string()), // Added email field for the logged-in user
   }),
 });

@@ -4,14 +4,30 @@ import { useState } from "react";
 import { useUser } from "@stackframe/stack";
 import Link from "next/link";
 import { CalendarIcon, PlusIcon, SearchIcon } from "lucide-react";
-import { TaskDialog } from "@/components/TaskDialog";
-import { type Priority } from "@/components/PrioritySelector";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { TaskDialog } from "@/components/TaskDialog";
+import { type Priority } from "@/components/PrioritySelector";
+import { Id } from "@/convex/_generated/dataModel";
 
-export default function Dashboard() {
+// Define Task interface based on Convex schema
+interface Task {
+  _id?: Id<"task">;
+  _creationTime?: number;
+  title: string;
+  date?: string;
+  priority?: string;
+  reminder?: string;
+  completed?: boolean;
+  user_id: string;
+  username: string;
+  email?: string;
+}
+
+export default function Upcoming() {
   const user = useUser({ or: "redirect" });
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   // Fetch tasks from Convex
   const userTasks = useQuery(api.tasks.getTasksByUser, { 
@@ -22,9 +38,47 @@ export default function Dashboard() {
   const createTask = useMutation(api.tasks.createTask);
   const updateTask = useMutation(api.tasks.updateTask);
 
+  // Get current date and next few days
   const today = new Date();
-  const formattedDate = `${today.getDate()} ${today.toLocaleString('default', { month: 'long' })} · ${today.toLocaleString('default', { weekday: 'long' })}`;
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
+  // Format dates for display
+  const formatDate = (date: Date) => {
+    return `${date.getDate()} ${months[date.getMonth()]} · ${weekdays[date.getDay()]}`;
+  };
+  
+  console.log(formatDate(today));
+  // Get the month and year for the header
+  const currentMonth = months[today.getMonth()];
+  const currentYear = today.getFullYear();
+
+  // Group tasks by date
+  const tasksByDate: Record<string, Task[]> = {};
+  
+  // Initialize dates for the next 7 days
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(today);
+    date.setDate(date.getDate() + i);
+    const dateStr = date.toISOString().split('T')[0];
+    tasksByDate[dateStr] = [];
+  }
+
+  // Group tasks into their respective dates
+  userTasks.forEach((task) => {
+    if (task.date) {
+      // If the task has a date, add it to that date's array
+      if (!tasksByDate[task.date]) {
+        tasksByDate[task.date] = [];
+      }
+      tasksByDate[task.date].push(task);
+    }
+  });
+
+  // Handle adding a new task
   const handleAddTask = async (task: { title: string; description: string; date: string; priority: Priority; completed: boolean }) => {
     if (!user) return;
     
@@ -32,8 +86,8 @@ export default function Dashboard() {
       await createTask({
         title: task.title,
         date: task.date,
-        priority: task.priority || undefined, // Use undefined instead of null
-        reminder: undefined, // Use undefined instead of null
+        priority: task.priority || undefined,
+        reminder: undefined,
         completed: task.completed,
         user_id: user.id,
         username: user.displayName || 'Anonymous',
@@ -44,13 +98,41 @@ export default function Dashboard() {
     }
   };
 
+  // Generate the next 7 days for the calendar header
+  const calendarDays = [];
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(today);
+    date.setDate(date.getDate() + i);
+    calendarDays.push({
+      date: date,
+      day: weekdays[date.getDay()].substring(0, 3),
+      dayOfMonth: date.getDate(),
+      isToday: i === 0
+    });
+  }
+
+  // Format a date for display in the task list
+  const formatTaskDate = (dateStr: string, index: number) => {
+    const date = new Date(dateStr);
+    const dayOfWeek = weekdays[date.getDay()];
+    
+    if (index === 0) {
+      return `${date.getDate()} ${months[date.getMonth()]} · Today · ${dayOfWeek}`;
+    } else if (index === 1) {
+      return `${date.getDate()} ${months[date.getMonth()]} · Tomorrow · ${dayOfWeek}`;
+    } else {
+      return `${date.getDate()} ${months[date.getMonth()]} · ${dayOfWeek}`;
+    }
+  };
+
   return (
     <div className="flex h-screen">
       {/* Task Dialog */}
       <TaskDialog 
         isOpen={isTaskDialogOpen} 
         onClose={() => setIsTaskDialogOpen(false)} 
-        onSave={handleAddTask} 
+        onSave={handleAddTask}
+        initialDate={selectedDate || undefined}
       />
       
       {/* Sidebar */}
@@ -64,7 +146,10 @@ export default function Dashboard() {
         
         <button 
           className="mx-4 my-3 flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-md py-2 px-3 text-sm font-medium"
-          onClick={() => setIsTaskDialogOpen(true)}
+          onClick={() => {
+            setSelectedDate(null);
+            setIsTaskDialogOpen(true);
+          }}
         >
           <PlusIcon className="h-4 w-4" />
           Add task
@@ -88,13 +173,13 @@ export default function Dashboard() {
               </Link>
             </li>
             <li>
-              <Link href="/dashboard" className="flex items-center px-4 py-2 text-sm bg-secondary">
+              <Link href="/dashboard" className="flex items-center px-4 py-2 text-sm hover:bg-secondary">
                 <span className="flex-1">Today</span>
                 <span className="text-muted-foreground">3</span>
               </Link>
             </li>
             <li>
-              <Link href="/upcoming" className="flex items-center px-4 py-2 text-sm hover:bg-secondary">
+              <Link href="/upcoming" className="flex items-center px-4 py-2 text-sm bg-secondary">
                 <span className="flex-1">Upcoming</span>
               </Link>
             </li>
@@ -137,7 +222,7 @@ export default function Dashboard() {
       <div className="flex-1 overflow-auto">
         <div className="max-w-3xl mx-auto p-6">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold">Today</h1>
+            <h1 className="text-2xl font-bold">Upcoming</h1>
             <div className="flex items-center gap-2">
               <button className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
                 <CalendarIcon className="h-4 w-4" />
@@ -149,10 +234,24 @@ export default function Dashboard() {
             </div>
           </div>
           
+          {/* Month and year */}
           <div className="text-sm text-muted-foreground mb-4">
-            <span>{userTasks.length} tasks</span>
+            <span>{currentMonth} {currentYear} ·</span>
           </div>
           
+          {/* Calendar days */}
+          <div className="flex mb-8 border-b pb-4">
+            {calendarDays.map((day, index) => (
+              <div key={index} className={`flex-1 flex flex-col items-center ${day.isToday ? 'text-primary' : ''}`}>
+                <div className="text-xs">{day.day}</div>
+                <div className={`text-sm mt-1 w-8 h-8 flex items-center justify-center rounded-full ${day.isToday ? 'bg-primary text-primary-foreground' : ''}`}>
+                  {day.dayOfMonth}
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Overdue section */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
               <button className="flex items-center gap-1 text-sm font-medium">
@@ -160,40 +259,48 @@ export default function Dashboard() {
               </button>
               <button className="text-sm text-destructive">Reschedule</button>
             </div>
-            
-            <div className="space-y-1 mt-2">
-              {userTasks.map(task => (
-                <div key={task._id} className="flex items-center p-2 hover:bg-secondary rounded-md">
-                  <input 
-                    type="checkbox"
-                    checked={task.completed || false}
-                    onChange={() => {
-                      updateTask({
-                        id: task._id,
-                        completed: !task.completed
-                      });
-                    }}
-                    className="h-4 w-4 rounded-full border-2 border-muted-foreground mr-3"
-                  />
-                  <span className="flex-1">{task.title}</span>
-                </div>
-              ))}
-            </div>
           </div>
           
-          <div className="mt-4">
-            <div className="flex items-center mb-2">
-              <span className="text-sm font-medium">{formattedDate}</span>
+          {/* Tasks by date */}
+          {Object.keys(tasksByDate).sort().map((dateStr, index) => (
+            <div key={dateStr} className="mb-6">
+              <div className="flex items-center mb-2">
+                <span className="text-sm font-medium">{formatTaskDate(dateStr, index)}</span>
+              </div>
+              
+              <div className="space-y-1 mt-2">
+                {tasksByDate[dateStr].map(task => (
+                  <div key={task._id} className="flex items-center p-2 hover:bg-secondary rounded-md">
+                    <input 
+                      type="checkbox"
+                      checked={task.completed || false}
+                      onChange={() => {
+                        if (task._id) {
+                          updateTask({
+                            id: task._id,
+                            completed: !task.completed
+                          });
+                        }
+                      }}
+                      className="h-4 w-4 rounded-full border-2 border-muted-foreground mr-3"
+                    />
+                    <span className="flex-1">{task.title}</span>
+                  </div>
+                ))}
+              </div>
+              
+              <button 
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground mt-2 p-2"
+                onClick={() => {
+                  setSelectedDate(dateStr);
+                  setIsTaskDialogOpen(true);
+                }}
+              >
+                <PlusIcon className="h-4 w-4" />
+                <span>Add task</span>
+              </button>
             </div>
-            
-            <button 
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground mt-2 p-2"
-              onClick={() => setIsTaskDialogOpen(true)}
-            >
-              <PlusIcon className="h-4 w-4" />
-              <span>Add task</span>
-            </button>
-          </div>
+          ))}
         </div>
       </div>
     </div>
