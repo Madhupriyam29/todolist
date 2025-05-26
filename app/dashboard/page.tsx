@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useUser } from "@stackframe/stack";
 import Link from "next/link";
 import { CalendarIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { TaskDialog } from "@/components/TaskDialog";
+import { type Priority } from "@/components/PrioritySelector";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
@@ -24,7 +25,7 @@ export default function Dashboard() {
   const today = new Date();
   const formattedDate = `${today.getDate()} ${today.toLocaleString('default', { month: 'long' })} · ${today.toLocaleString('default', { weekday: 'long' })}`;
 
-  const handleAddTask = async (task: { title: string; description: string; date: string; priority: any; completed: boolean }) => {
+  const handleAddTask = async (task: { title: string; description: string; date: string; priority: Priority; completed: boolean }) => {
     if (!user) return;
     
     try {
