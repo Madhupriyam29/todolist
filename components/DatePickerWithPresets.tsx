@@ -65,7 +65,12 @@ export function DatePickerWithPresets({ date, setDate }: DatePickerWithPresetsPr
           {formatDisplayDate(date)}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent 
+        className="w-auto p-0 flex flex-col" 
+        align="start" 
+        sideOffset={8}
+        style={{ maxHeight: '400px', overflowY: 'auto' }}
+      >
         <div className="p-2 border-b border-gray-200 dark:border-gray-700">
           <div className="bg-blue-50 dark:bg-blue-900/20 text-xs font-medium py-1 px-2 rounded mb-1">
             {format(today, 'd MMMM')}
@@ -132,15 +137,18 @@ export function DatePickerWithPresets({ date, setDate }: DatePickerWithPresetsPr
           </div>
         </div>
         
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={(date: Date | undefined) => {
-            setDate(date)
-            setIsCalendarOpen(false)
-          }}
-          initialFocus
-        />
+        <div className="calendar-container p-3 overflow-y-auto">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={(date: Date | undefined) => {
+              setDate(date)
+              setIsCalendarOpen(false)
+            }}
+            initialFocus
+            className="rounded-md"
+          />
+        </div>
         
         <div className="p-2 border-t border-gray-200 dark:border-gray-700">
           <Button

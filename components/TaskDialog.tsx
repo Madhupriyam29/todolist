@@ -42,10 +42,10 @@ export function TaskDialog({ isOpen, onClose, onSave }: TaskDialogProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md overflow-hidden">
-        <form onSubmit={handleSubmit}>
-          <div className="p-4">
+    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
+        <form onSubmit={handleSubmit} className="flex flex-col h-full">
+          <div className="p-4 overflow-y-auto">
             <div className="flex items-center gap-3 mb-2">
               <input
                 type="checkbox"
