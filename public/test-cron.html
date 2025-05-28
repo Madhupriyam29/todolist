@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Cron API</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      min-height: 100px;
+      white-space: pre-wrap;
+    }
+    button {
+      padding: 8px 16px;
+      background-color: #0070f3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    input {
+      padding: 8px;
+      width: 300px;
+      margin-bottom: 10px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>Test Daily Reminders API</h1>
+  <div>
+    <label for="secretKey">CRON_SECRET_KEY:</label>
+    <input type="text" id="secretKey" placeholder="Enter your CRON_SECRET_KEY">
+    <button onclick="testCronAPI()">Test API Endpoint</button>
+  </div>
+  <div id="result">Results will appear here...</div>
+
+  <script>
+    async function testCronAPI() {
+      const secretKey = document.getElementById('secretKey').value;
+      const resultDiv = document.getElementById('result');
+      
+      if (!secretKey) {
+        resultDiv.textContent = 'Please enter your CRON_SECRET_KEY';
+        return;
+      }
+      
+      resultDiv.textContent = 'Testing API...';
+      
+      try {
+        const response = await fetch('/api/cron/daily-reminders', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${secretKey}`
+          }
+        });
+        
+        const data = await response.json();
+        resultDiv.textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        resultDiv.textContent = `Error: ${error.message}`;
+      }
+    }
+  </script>
+</body>
+</html>

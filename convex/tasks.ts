@@ -39,6 +39,16 @@ export const getTasksByUser = query({
   },
 });
 
+// Get all tasks (for reminder system)
+export const getAllTasks = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db
+      .query("task")
+      .collect();
+  },
+});
+
 // Get a specific task by ID
 export const getTask = query({
   args: { id: v.id("task") },

@@ -1,0 +1,7 @@
+{
+  "name": "todolist-scripts",
+  "version": "1.0.0",
+  "description": "Helper scripts for TodoList app",
+  "type": "module",
+  "private": true
+}
