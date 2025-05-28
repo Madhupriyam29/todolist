@@ -3,11 +3,19 @@
 import { useState } from "react";
 import { useUser } from "@stackframe/stack";
 import Link from "next/link";
-import { CalendarIcon, PlusIcon, SearchIcon } from "lucide-react";
+import { CalendarIcon, PlusIcon, SearchIcon, LogOut, User } from "lucide-react";
 import { TaskDialog } from "@/components/TaskDialog";
 import { type Priority } from "@/components/PrioritySelector";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { 
+  DropdownMenu, 
+  DropdownMenuTrigger, 
+  DropdownMenuContent, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuItem 
+} from "@/components/ui/dropdown-menu";
 
 export default function Dashboard() {
   const user = useUser({ or: "redirect" });
@@ -56,10 +64,29 @@ export default function Dashboard() {
       {/* Sidebar */}
       <div className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
         <div className="p-4 flex items-center">
-          <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium">
-            {user?.displayName?.charAt(0) || 'M'}
-          </div>
-          <div className="ml-2 text-sm font-medium truncate">{user?.displayName || 'Madhupriyam29'}</div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center outline-none">
+                <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium">
+                  {user?.displayName?.charAt(0) || 'M'}
+                </div>
+                <div className="ml-2 text-sm font-medium truncate">{user?.displayName || 'Madhupriyam29'}</div>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <User className="mr-2 h-4 w-4" />
+                <span>{user?.displayName || 'Madhupriyam29'}</span>
+              </DropdownMenuItem>
+              
+             <DropdownMenuItem onClick={() => user.signOut()}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         
         <button 
